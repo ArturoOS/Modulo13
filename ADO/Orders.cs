@@ -13,32 +13,59 @@ namespace ADO
         private DataBase _db;
         public Orders() 
         {
-            _connectionString = "Server=localhost;Database=mydatabase;User=myuser;Password=mypassword;";
+            _connectionString = "Server= localhost; Database= ADO; Integrated Security=True;";
             _db = new DataBase(_connectionString);
         }
-        public void CreateOrder(string status)
+        public void CreateOrder(string status, int productId)
         {
-            string query = "INSERT INTO Orders VALUES (" + status + ")";
+            string query = $"INSERT INTO Orders VALUES ('{status}','{DateTime.Now}','{DateTime.Now}','{productId}')";
             _db.Create(query);
         }
-        public DataTable GetOrders()
+        public List<Order> GetOrders()
         {
             string query = "SELECT * FROM Orders";
-            return _db.Read(query);
+            var dataTable = _db.Read(query);
+            List<Order> list = dataTable.Rows.OfType<DataRow>()
+            .Select(dr => new Order()
+            {
+                OrderId = dr.Field<int>("OrderId"),
+                OrderStatus = dr.Field<string>("OrderStatus"),
+                CreatedDate = dr.Field<DateTime>("CreatedDate"),
+                UpdatedDate = dr.Field<DateTime>("UpdatedDate"),
+                ProductId = dr.Field<int>("ProductId")
+
+            }).ToList();
+            return list;
         }
         public void UpdateOrder(int id, string newStatus)
         {
-            string query = "UPDATE Orders SET status = '" + newStatus + "' WHERE id =" + id;
+            string query = "UPDATE Orders SET OrderStatus = '" + newStatus + "' WHERE OrderId =" + id;
             _db.Update(query);
         }
         public void DeleteOrder(int id)
         {
-            string query = "DELETE FROM Orders WHERE id =" + id;
+            string query = "DELETE FROM Orders WHERE OrderId =" + id;
             _db.Delete(query);
         }
-        public void ExecuteSP(string spName, Dictionary<string, object> parameters)
+        public List<Order> ExecuteSP(string status, DateTime date)
         {
-            _db.ExecuteStoredProcedure(spName, parameters);
+            var dataTable = _db.ExecuteStoredProcedure(status, date);
+            List<Order> list = dataTable.Rows.OfType<DataRow>()
+            .Select(dr => new Order()
+            {
+                OrderId = dr.Field<int>("OrderId"),
+                OrderStatus = dr.Field<string>("OrderStatus"),
+                CreatedDate = dr.Field<DateTime>("CreatedDate"),
+                UpdatedDate = dr.Field<DateTime>("UpdatedDate"),
+                ProductId = dr.Field<int>("ProductId")
+
+            }).ToList();
+            return list;
+        }
+        public void DeleteOrders()
+        {
+            string query = "DELETE FROM Orders";
+            _db.Delete(query);
         }
     }
 }

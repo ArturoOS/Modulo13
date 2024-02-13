@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,32 +14,46 @@ namespace ADO
         private DataBase _db;
         public Products()
         {
-            _connectionString = "Server=localhost;Database=mydatabase;User=myuser;Password=mypassword;";
+            _connectionString = "Data Source=localhost;Initial Catalog=ADO;Persist Security Info=True;Integrated Security=true;";
             _db = new DataBase(_connectionString);
         }
-        public void CreateProduct(string values)
+        public void CreateProduct(string length, string name, string width, string description,string weight)
         {
-            string query = "INSERT INTO Products VALUES (" + values + ")";
+            string query = $"INSERT INTO Products VALUES ('{name}','{description}','{weight}','{width}','{length}')";
             _db.Create(query);
         }
-        public DataTable GetProducts()
+        public List<Product> GetProducts()
         {
             string query = "SELECT * FROM Products";
-            return _db.Read(query);
+            var dataTable = _db.Read(query);
+            List<Product> list = dataTable.Rows.OfType<DataRow>()
+            .Select(dr => new Product()
+            {
+                ProductId = dr.Field<int>("ProductId"),
+                ProductName = dr.Field<string>("ProductName"),
+                ProductDescription = dr.Field<string>("ProductDescription"),
+                ProductWeight = dr.Field<string>("ProductWeight"),
+                ProductWidth = dr.Field<string>("ProductWidth"),
+                ProductLenght = dr.Field<string>("ProductLenght")
+            }).ToList();
+            
+            return list;
         }
-        public void UpdateProduct(int id, string values)
+        public void UpdateProduct(int id, string length, string name, string width, string description, string weight)
         {
-            string query = "UPDATE Products SET VALUES = '" + values + "' WHERE id =" + id;
+            string query = $"UPDATE Products SET ProductName = '{name}',ProductDescription={description}, ProductWeight={weight}" +
+                $" WHERE ProductId =" + id;
             _db.Update(query);
         }
         public void DeleteProduct(int id)
         {
-            string query = "DELETE FROM Products WHERE id =" + id;
+            string query = "DELETE FROM Products WHERE ProductId =" + id;
             _db.Delete(query);
         }
-        public void ExecuteSP(string spName, Dictionary<string, object> parameters) 
+        public void DeleteProducts()
         {
-            _db.ExecuteStoredProcedure(spName, parameters);
+            string query = "DELETE FROM Products";
+            _db.Delete(query);
         }
     }
 }

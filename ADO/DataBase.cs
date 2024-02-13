@@ -116,19 +116,19 @@ namespace ADO
                     _connection.Close();
             }
         }
-        public bool ExecuteStoredProcedure(string spName, Dictionary<string,object> parameters) 
+        public DataTable ExecuteStoredProcedure(string status, DateTime date) 
         {
             try
             {
-                SqlCommand cmd = new SqlCommand("spName", _connection);
+                SqlCommand cmd = new SqlCommand("GetOrders", _connection);
                 cmd.CommandType = CommandType.StoredProcedure;
-                foreach (var param in parameters)
-                {
-                    cmd.Parameters.Add(new SqlParameter("@" + param.Key, param.Value));
-                }
+                cmd.Parameters.Add(new SqlParameter("@OrderStatus", status));
+                cmd.Parameters.Add(new SqlParameter("@Date", date));
                 _connection.Open();
-                cmd.ExecuteNonQuery();
-                return true;
+
+                DataTable dt = new DataTable();
+                dt.Load(cmd.ExecuteReader());
+                return dt;
             }
             catch (SqlException e)
             {
